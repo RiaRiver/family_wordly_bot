@@ -46,3 +46,6 @@ coverage/
 # Temp files
 tmp/
 temp/
+
+#
+*.db
