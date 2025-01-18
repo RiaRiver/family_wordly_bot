@@ -324,11 +324,15 @@ bot.command("normal", async (ctx) => {
 
 bot.on("message", async (ctx) => {
   const {
-    message: { forward_date },
+    message: { forward_date, chat, reply_to_message },
   } = ctx;
 
   if (!allowedUsers.hasOwnProperty(ctx.from.id)) {
     return ctx.reply("Вы не авторизованы для использования этого бота.");
+  }
+
+  if (chat.type !== "private" || reply_to_message) {
+    return;
   }
 
   if (!forward_date) {
