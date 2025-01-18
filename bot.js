@@ -101,10 +101,10 @@ const checkWord = async (word) => {
 const reportDuplicate = async (ctx, duplicates) => {
   const sender = getSender(ctx);
   const senderDuplicates = duplicates.filter(
-    (obj) => obj.senderId === sender.id
+    (obj) => obj.sender_id === sender.id
   );
   const othersDuplicates = duplicates.filter(
-    (obj) => obj.senderId !== sender.id
+    (obj) => obj.sender_id !== sender.id
   );
 
   const { word } = duplicates[0];
@@ -113,11 +113,11 @@ const reportDuplicate = async (ctx, duplicates) => {
   if (senderDuplicates.length) {
     const senderDuplicatesDates = senderDuplicates.map(
       (obj) =>
-        new Date(obj.timestamp + " UTC").toLocaleString("ru-RU", {
+        new Date(obj.timestamp).toLocaleString("ru-RU", {
           timeZone: "Europe/Moscow",
         }) +
         `
-<a href="${MESSAGE_URL_BASE}${obj.messageId}">Перейти к сообщению</a>`
+<a href="${MESSAGE_URL_BASE}${obj.message_id}">Перейти к сообщению</a>`
     );
     messages.push(`Вы уже отправляли  "<b>${word}</b>": 
 ${senderDuplicatesDates.join("\n")}
@@ -126,7 +126,7 @@ ${senderDuplicatesDates.join("\n")}
 
   if (othersDuplicates.length) {
     const othersDuplicatesNames = [
-      ...new Set(othersDuplicates.map((obj) => obj.senderName)),
+      ...new Set(othersDuplicates.map((obj) => obj.sender_name)),
     ];
 
     messages.push(`Другие отправляли "<b>${word}</b>": 
