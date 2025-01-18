@@ -340,8 +340,7 @@ bot.on("message", async (ctx) => {
     return;
   }
 
-  const url =
-    ctx.message.link_preview_options?.url || findUrl(ctx.message.text);
+  const url = findUrl(ctx.message.text);
   if (url && url.includes(URL_BASE)) {
     handleForwarded(ctx, url);
     return;

@@ -46,6 +46,7 @@ coverage/
 # Temp files
 tmp/
 temp/
+temp.js
 
 #
 *.db
