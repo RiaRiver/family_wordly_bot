@@ -362,7 +362,8 @@ bot.on("message", async (ctx) => {
     return;
   }
 
-  const url = findUrl(ctx.message.text);
+  const url =
+    findUrl(ctx.message.text) || ctx.message.link_preview_options?.url;
   const isForwarded = url && url.includes(URL_BASE);
   if (isForwarded) {
     forwardedQueue.push({ ctx, url });
@@ -370,7 +371,7 @@ bot.on("message", async (ctx) => {
     return;
   }
 
-  ctx.reply("Что-то пошло не так, попробуйте еще раз");
+  ctx.reply("❌ Что-то пошло не так, попробуйте еще раз");
 });
 
 bot.launch();
