@@ -196,7 +196,7 @@ const sendWord = async (
     messageId = sendedMessage.message_id; // Сохраняем ID отправленного сообщения
   } catch (error) {
     console.error("Ошибка при отправке сообщения в Telegram:", error);
-    ctx.reply("Произошла ошибка при отправке сообщения в чат.");
+    ctx.reply("❌ Произошла ошибка при отправке сообщения в чат.");
     throw error;
   }
 
@@ -212,7 +212,7 @@ const sendWord = async (
     console.error("Ошибка при сохранении в базу:", error);
     // Удаляем сообщение, если не удалось сохранить в базу
     await bot.telegram.deleteMessage(FAMILY_CHAT_ID, messageId);
-    ctx.reply("Ошибка при сохранении слова в базу данных.");
+    ctx.reply("❌ Ошибка при сохранении слова в базу данных.");
     throw error;
   }
 };
@@ -267,7 +267,7 @@ const handleForwarded = async (ctx, url) => {
   const wordObj = parseWord(url, text);
 
   if (await wordsBase.checkForwarded(wordObj.word, sender.id)) {
-    ctx.reply("Это сообщение уже пересылалось", {
+    ctx.reply("❌ Это сообщение уже пересылалось", {
       reply_to_message_id: ctx.message.message_id,
     });
     return;
