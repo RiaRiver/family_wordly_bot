@@ -267,7 +267,9 @@ const handleForwarded = async (ctx, url) => {
   const wordObj = parseWord(url, text);
 
   if (await wordsBase.checkForwarded(wordObj.word, sender.id)) {
-    ctx.reply("Это сообщение уже пересылалось");
+    ctx.reply("Это сообщение уже пересылалось", {
+      reply_to_message_id: ctx.message.message_id,
+    });
     return;
   }
 
