@@ -15,6 +15,24 @@ const bot = new Telegraf(BOT_TOKEN);
 const URL_BASE = "https://wordle.belousov.one/word/?id=ru_";
 const MESSAGE_URL_BASE = `https://t.me/c/${FAMILY_CHAT_ID.slice(4)}/`;
 
+const forwardedQueue = [];
+let isProcessingForwarded = false;
+
+const processNextForwarded = async () => {
+  if (forwardedQueue.length === 0 || isProcessingForwarded) {
+    return;
+  }
+
+  const { ctx, url } = forwardedQueue.shift();
+  isProcessingForwarded = true;
+
+  await handleForwarded(ctx, url);
+
+  isProcessingForwarded = false;
+  // Для следующего сообщения вызываем обработку
+  setImmediate(processNextForwarded);
+};
+
 wordsBase.create();
 const forceModeUsers = new Set(); // Set для хранения пользователей в режиме force
 
@@ -257,6 +275,7 @@ const handleForwarded = async (ctx, url) => {
   try {
     messageId = await sendWord(ctx, sender, wordObj, true);
   } catch (error) {
+    console.error("Ошибка при отправке слова:", error);
     return;
   }
   // Успешно, отправляем подтверждение пользователю
@@ -267,6 +286,7 @@ const handleForwarded = async (ctx, url) => {
 
   await ctx.reply(replyMessage, {
     parse_mode: "HTML",
+    reply_to_message_id: ctx.message.message_id,
   });
 };
 
@@ -341,8 +361,10 @@ bot.on("message", async (ctx) => {
   }
 
   const url = findUrl(ctx.message.text);
-  if (url && url.includes(URL_BASE)) {
-    handleForwarded(ctx, url);
+  const isForwarded = url && url.includes(URL_BASE);
+  if (isForwarded) {
+    forwardedQueue.push({ ctx, url });
+    processNextForwarded();
     return;
   }
 
