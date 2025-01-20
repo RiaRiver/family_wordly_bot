@@ -35,6 +35,7 @@ const processNextForwarded = async () => {
 
 wordsBase.create();
 const forceModeUsers = new Set(); // Set для хранения пользователей в режиме force
+const checkModeUsers = new Set(); // Set для хранения пользователей в режиме проверки
 
 bot.telegram.setMyCommands([
   {
@@ -44,6 +45,11 @@ bot.telegram.setMyCommands([
   {
     command: "help",
     description: "Помощь",
+  },
+  {
+    command: "check",
+    description:
+      "Режим проверки слов. Проверяет были ли ранее отправлены слова из следующего сообщения.",
   },
   {
     command: "force",
@@ -222,6 +228,7 @@ const sendWord = async (
 const handleWord = async (ctx) => {
   const sender = getSender(ctx);
   const isForceMode = forceModeUsers.has(sender.id);
+  const isCheckMode = checkModeUsers.has(sender.id);
 
   const wordObjs = ctx.message.text
     .split("\n")
@@ -234,23 +241,33 @@ const handleWord = async (ctx) => {
     const duplicates = isForceMode ? null : await checkWord(wordObj.word);
 
     if (!duplicates) {
-      let messageId;
-      try {
-        // Если дубликата нет, отправляем слово
-        messageId = await sendWord(ctx, sender, wordObj);
-      } catch (error) {
-        return;
-      }
+      if (isCheckMode) {
+        const replyMessage = `
+        ✅ "<b>${wordObj.word}</b>" раньше не отправлялось.
+      `;
 
-      // Успешно, отправляем подтверждение пользователю
-      const replyMessage = `
+        await ctx.reply(replyMessage, {
+          parse_mode: "HTML",
+        });
+      } else {
+        let messageId;
+        try {
+          // Если дубликата нет, отправляем слово
+          messageId = await sendWord(ctx, sender, wordObj);
+        } catch (error) {
+          return;
+        }
+
+        // Успешно, отправляем подтверждение пользователю
+        const replyMessage = `
         "<b>${wordObj.word}</b>" отправлено в чат
 <a href="${MESSAGE_URL_BASE}${messageId}">Перейти к сообщению</a>
       `;
 
-      await ctx.reply(replyMessage, {
-        parse_mode: "HTML",
-      });
+        await ctx.reply(replyMessage, {
+          parse_mode: "HTML",
+        });
+      }
     } else {
       // Если дубликат найден, выводим сообщение о нем
       reportDuplicate(ctx, duplicates);
@@ -258,6 +275,7 @@ const handleWord = async (ctx) => {
   }
 
   if (isForceMode) forceModeUsers.delete(sender.id);
+  if (isCheckMode) checkModeUsers.delete(sender.id);
 };
 
 const handleForwarded = async (ctx, url) => {
@@ -334,15 +352,24 @@ __________          __________
 
 bot.command("force", async (ctx) => {
   const userId = ctx.from.id;
+  checkModeUsers.delete(userId);
   forceModeUsers.add(userId); // Добавляем пользователя в режим force
   await ctx.reply("Вы в режиме принудительной отправки. Отправьте слово.");
 });
 
+bot.command("check", async (ctx) => {
+  const userId = ctx.from.id;
+  forceModeUsers.delete(userId);
+  checkModeUsers.add(userId); // Добавляем пользователя в режим force
+  await ctx.reply("Вы в режиме проверки слов. Отправьте сообщение.");
+});
+
 bot.command("normal", async (ctx) => {
   const userId = ctx.from.id;
+  checkModeUsers.delete(userId);
   forceModeUsers.delete(userId); // Удаляем пользователя из режима force
   await ctx.reply(
-    "Вы в нормальном режиме. Теперь слово будет проверятся пере отправкой."
+    "Вы в нормальном режиме. Теперь слово будет проверятся перед отправкой."
   );
 });
 
