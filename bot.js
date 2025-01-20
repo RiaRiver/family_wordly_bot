@@ -4,9 +4,9 @@ import wordsBase from "./wordsBase.js";
 
 dotenv.config();
 const allowedUsers = {
-  50249573: "Лера",
-  38036332: "Дима",
-  84321375: "Мама",
+  50249573: { name: "Лера", emoj: "🟩" },
+  38036332: { name: "Дима", emoj: "🟨" },
+  84321375: { name: "Мама", emoj: "🟪" },
 };
 
 const { BOT_TOKEN, FAMILY_CHAT_ID } = process.env;
@@ -137,7 +137,7 @@ const reportDuplicate = async (ctx, duplicates) => {
         `
 <a href="${MESSAGE_URL_BASE}${obj.message_id}">Перейти к сообщению</a>`
     );
-    messages.push(`Вы уже отправляли  "<b>${word}</b>": 
+    messages.push(`❗️"<b>${word}</b>" Вы уже отправляли: 
 ${senderDuplicatesDates.join("\n")}
     `);
   }
@@ -147,7 +147,7 @@ ${senderDuplicatesDates.join("\n")}
       ...new Set(othersDuplicates.map((obj) => obj.sender_name)),
     ];
 
-    messages.push(`Другие отправляли "<b>${word}</b>": 
+    messages.push(`❗️"<b>${word}</b>" Другие уже отправляли: 
 ${othersDuplicatesNames.join("\n")}`);
   }
 
@@ -162,8 +162,10 @@ const sendWord = async (
   { word, encoded, comment },
   isForwarded = false
 ) => {
+  const { emoj } = allowedUsers[senderId];
+
   const message = `
-  <b>#${senderName}</b> загадал слово:
+  ${emoj} <b>#${senderName}</b> загадал <a href="${URL_BASE}${encoded}">слово</a>: 
   ${
     isForwarded
       ? `
@@ -267,7 +269,7 @@ const handleForwarded = async (ctx, url) => {
   const wordObj = parseWord(url, text);
 
   if (await wordsBase.checkForwarded(wordObj.word, sender.id)) {
-    ctx.reply("❌ Это сообщение уже пересылалось", {
+    ctx.reply("❗️ Это сообщение уже пересылалось", {
       reply_to_message_id: ctx.message.message_id,
     });
     return;
