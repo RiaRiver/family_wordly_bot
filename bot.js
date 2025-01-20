@@ -178,7 +178,7 @@ const sendWord = async (
       : ""
   }
   
-<tg-spoiler>${word}</tg-spoiler>
+<tg-spoiler><a href="https://www.google.com/search?q=define%3A+${word}">${word}</a></tg-spoiler>
 <code>${comment || ""}</code>
 
 <a href="${URL_BASE}${encoded}">Играть</a>
