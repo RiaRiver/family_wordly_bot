@@ -1,20 +1,21 @@
-import pkg from "pg"; // Импортируем весь пакет
-const { Client } = pkg; // Деструктурируем Client из этого пакета
-import dotenv from "dotenv";
+import pkg from 'pg'; // Деструктурируем Client из этого пакета
+import dotenv from 'dotenv';
+// Импортируем весь пакет
+const { Client } = pkg;
 
 dotenv.config(); // Для чтения переменных окружения, например DATABASE_URL
 
 // Инициализация подключения к PostgreSQL
 const db = new Client({
-  connectionString: process.env.DATABASE_URL, // Указание URL для подключения к базе данных (например, на Railway)
+  connectionString: process.env.DATABASE_URL,
 });
 
 db.connect()
   .then(() => {
-    console.log("Успешное подключение к базе данных");
+    console.log('Успешное подключение к базе данных');
   })
   .catch((err) => {
-    console.error("Ошибка подключения к базе данных", err);
+    console.error('Ошибка подключения к базе данных', err);
   }); // Подключаемся к базе данных
 
 const wordsBase = {
@@ -38,7 +39,7 @@ const wordsBase = {
     word,
     messageId,
     isForwarded,
-    { id: senderId, name: senderName }
+    { id: senderId, name: senderName },
   ) {
     const query = `
       INSERT INTO words (message_id, word, sender_id, sender_name, is_forwarded) 
@@ -49,19 +50,19 @@ const wordsBase = {
     try {
       await db.query(query, values); // Выполняем вставку данных
     } catch (error) {
-      console.error("Ошибка при сохранении слова:", error);
+      console.error('Ошибка при сохранении слова:', error);
       throw error; // Если произошла ошибка, выбрасываем исключение
     }
   },
 
   // Получение данных по слову
   async getData(word) {
-    const query = `SELECT * FROM words WHERE word = $1`;
+    const query = 'SELECT * FROM words WHERE word = $1';
     try {
       const res = await db.query(query, [word]); // Выполняем запрос
       return res.rows; // Возвращаем результат (массив строк)
     } catch (error) {
-      console.error("Ошибка при получении данных:", error);
+      console.error('Ошибка при получении данных:', error);
       throw error;
     }
   },
@@ -76,7 +77,7 @@ const wordsBase = {
       const res = await db.query(query, [word, senderId]); // Выполняем запрос
       return res.rows.length > 0; // Если запись найдена, возвращаем true
     } catch (error) {
-      console.error("Ошибка при проверке пересланного слова:", error);
+      console.error('Ошибка при проверке пересланного слова:', error);
       throw error;
     }
   },
