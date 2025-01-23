@@ -105,7 +105,7 @@ const checkWiki = async (word) => {
   for (const formattedWord of wordVariants) {
     const url = `https://ru.wiktionary.org/w/api.php?action=query&format=json&prop=extracts&titles=${encodeURIComponent(
       formattedWord,
-    )}&redirects=1&formatversion=2&explaintext=1`;
+    )}&formatversion=2&explaintext=1`;
 
     try {
       const response = await fetch(url);
