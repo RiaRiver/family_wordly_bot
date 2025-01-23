@@ -60,38 +60,41 @@ ${othersDuplicatesNames.join('\n')}`);
 };
 
 export const checkSpelling = async (word) => {
-  const url = `https://speller.yandex.net/services/spellservice.json/checkText?text=${encodeURIComponent(
-    word,
-  )}`;
+  const url = 'https://api.languagetoolplus.com/v2/check';
+  const params = new URLSearchParams(); // Формируем параметры
+  params.append('text', word);
+  params.append('language', 'ru');
+  params.append('enabledOnly', 'false');
 
   try {
-    const response = await fetch(url);
-    const data = await response.json();
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(), // Передаем данные в формате form-urlencoded
+    });
 
-    if (data.length === 0) {
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ошибка API: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    const { matches } = result;
+
+    if (matches.length === 0) {
       return { exist: true };
     }
 
-    // Проверяем каждое предложение повторно
-    const filteredSuggestions = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const suggestion of data[0].s) {
-      const checkUrl = `https://speller.yandex.net/services/spellservice.json/checkText?text=${encodeURIComponent(
-        suggestion,
-      )}`;
-      const suggestionResponse = await fetch(checkUrl);
-      const suggestionData = await suggestionResponse.json();
+    const suggestions = matches.flatMap((match) => match.replacements
+      .map((suggestion) => suggestion.value));
 
-      // Если слово корректное (API вернул пустой массив), добавляем его
-      if (suggestionData.length === 0) {
-        filteredSuggestions.push(suggestion);
-      }
-    }
-
-    return { exist: false, suggestions: filteredSuggestions };
+    return { exist: false, suggestions };
   } catch (error) {
     console.error('Ошибка при запросе:', error);
-    return { error: '❌ Не смог проверить в Яндекс Спеллер!' };
+    return { error: '❌ Не смог проверить в LanguageTool!' };
   }
 };
 
@@ -118,15 +121,23 @@ const checkWiki = async (word) => {
         const fullExtract = page.extract || null;
 
         if (fullExtract) {
-          const valueMatch = fullExtract.match(
-            /==== Значение ====\n([\s\S]*?)(\n====|\n===|$)/,
-          );
+          // Найти блок для русского языка
+          const russianSection = fullExtract.match(/= Русский =([\s\S]*?)(\n= |$)/);
 
-          if (valueMatch) {
-            const definitions = valueMatch[1]
-              .split('\n')
-              .map((line) => line.replace(/◆.*/, '').trim());
-            return { exist: true, definitions };
+          if (russianSection) {
+            const russianText = russianSection[1];
+
+            // Извлечь значение из русского блока
+            const valueMatch = russianText.match(
+              /==== Значение ====\n([\s\S]*?)(\n====|\n===|$)/,
+            );
+
+            if (valueMatch) {
+              const definitions = valueMatch[1]
+                .split('\n')
+                .map((line) => line.replace(/◆.*/, '').trim());
+              return { exist: true, definitions };
+            }
           }
         }
       }
