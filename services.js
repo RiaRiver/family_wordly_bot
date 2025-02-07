@@ -127,6 +127,11 @@ const checkWiki = async (word) => {
           if (russianSection) {
             const russianText = russianSection[1];
 
+            const properMatch = russianText.match(/имя собственное/i);
+            if (properMatch) {
+              return { exist: true, proper: true };
+            }
+
             // Извлечь значение из русского блока
             const valueMatch = russianText.match(
               /==== Значение ====\n([\s\S]*?)(\n====|\n===|$)/,
@@ -237,8 +242,15 @@ const checkWord = async (ctx, wordObj, isCheckMode) => {
   const checkedWiki = await checkWiki(word);
 
   if (checkedWiki.exist) {
-    return true;
-  } if (checkedWiki.error) {
+    if (checkedWiki.proper) {
+      const checkMessage = `❗️"<b>${word}</b>" является именем собственным!
+Если вы хотите его отправить, сделайте это в принудительном режиме.`;
+
+      await ctx.reply(checkMessage, {
+        parse_mode: 'HTML',
+      });
+    } else return true;
+  } else if (checkedWiki.error) {
     await ctx.reply(checkedWiki.error, {
       parse_mode: 'HTML',
     });
