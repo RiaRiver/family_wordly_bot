@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node bot.js",
-    "debug": "nodemon --inspect bot.js"
+    "debug": "nodemon --inspect=9230 bot.js"
   },
   "keywords": [],
   "author": "",

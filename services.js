@@ -100,8 +100,8 @@ export const checkSpelling = async (word) => {
 
 const checkWiki = async (word) => {
   const wordVariants = [
-    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(), // С заглавной
     word.toLowerCase(), // С маленькой
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(), // С заглавной
   ];
 
   // eslint-disable-next-line no-restricted-syntax
