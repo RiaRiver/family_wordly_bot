@@ -47,6 +47,7 @@ coverage/
 tmp/
 temp/
 temp.js
+ignore/
 
 #
 *.db
